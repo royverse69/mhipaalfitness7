@@ -1,0 +1,229 @@
+/* Base styles for dark mode toggle switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 48px; /* Adjusted width for better mobile tap target */
+    height: 28px; /* Adjusted height */
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; /* Adjusted size */
+    width: 20px; /* Adjusted size */
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(20px); /* Adjusted translation */
+    -ms-transform: translateX(20px); /* Adjusted translation */
+    transform: translateX(20px); /* Adjusted translation */
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 28px; /* Adjusted border-radius */
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Dark mode specific styles (retained from previous multi-file version) */
+body.dark-mode {
+    background-color: #1a202c; /* Dark background */
+    color: #e2e8f0; /* Light text */
+}
+
+.dark-mode .bg-white {
+    background-color: #2d3748; /* Darker card background */
+    color: #e2e8f0;
+}
+
+.dark-mode .shadow-sm, .dark-mode .shadow-md, .dark-mode .shadow-lg {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.12); /* Darker shadows */
+}
+
+.dark-mode .text-gray-700 {
+    color: #cbd5e0; /* Lighter gray text */
+}
+
+.dark-mode .text-gray-600 {
+    color: #a0aec0;
+}
+
+.dark-mode .border-gray-300 {
+    border-color: #4a5568; /* Darker border */
+}
+
+.dark-mode input,
+.dark-mode select {
+    background-color: #4a5568;
+    color: #e2e8f0;
+    border-color: #4a5568;
+}
+
+.dark-mode input::placeholder {
+    color: #a0aec0;
+}
+
+.dark-mode .bg-gray-200 {
+    background-color: #4a5568;
+    color: #e2e8f0;
+}
+
+.dark-mode .hover\:bg-gray-100:hover {
+    background-color: #4a5568;
+}
+
+.dark-mode .text-blue-600 {
+    color: #63b3ed; /* Lighter blue for dark mode */
+}
+
+.dark-mode .bg-blue-500 {
+    background-color: #4299e1; /* Lighter blue for dark mode buttons */
+}
+
+.dark-mode .hover\:bg-blue-600:hover {
+    background-color: #3182ce;
+}
+
+/* Modals */
+.modal-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100; /* Ensure it's above backdrop */
+}
+
+/* Chart.js specific styles to ensure text visibility in dark mode */
+.dark-mode canvas {
+    color: #e2e8f0; /* Set text color for charts */
+}
+
+/* General button styling */
+button {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Navigation item active state */
+.nav-item.active {
+    color: #2563eb; /* Tailwind blue-600 */
+}
+
+.page {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.page.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.page.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Custom styles for meal categories */
+.meal-category-btn.active {
+    background-color: #2563eb;
+    color: white;
+}
+.meal-category-btn:not(.active) {
+    background-color: #e5e7eb; /* Tailwind gray-200 */
+    color: #4b5563; /* Tailwind gray-700 */
+}
+
+/* Custom styles for nutrition tabs */
+.nutrition-tab-btn.active {
+    border-color: #2563eb;
+    color: #2563eb;
+}
+.nutrition-tab-btn:not(.active) {
+    border-color: transparent;
+    color: #6b7280; /* Tailwind gray-600 */
+}
+
+/* Ensure smooth scrolling on mobile */
+html, body {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* For better touch target size on mobile */
+button, input[type="text"], input[type="number"], select {
+    min-height: 44px; /* Recommended minimum touch target size */
+}
+
+/* Toast Notification styles */
+#toast-container {
+    bottom: 6rem; /* Above mobile nav */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 1000;
+    width: 90%;
+    max-width: 300px;
+    position: fixed; /* Ensure it's fixed */
+}
+.toast {
+    background-color: #fff;
+    color: #333;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.toast.success { border-left: 4px solid #10B981; } /* Green */
+.toast.error { border-left: 4px solid #EF4444; }   /* Red */
+.toast.info { border-left: 4px solid #3B82F6; }    /* Blue */
+
+.dark-mode .toast {
+    background-color: #2d3748;
+    color: #e2e8f0;
+}
