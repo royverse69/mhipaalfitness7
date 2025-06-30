@@ -3,583 +3,1387 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitTrack</title>
-    <!-- Tailwind CSS CDN -->
+    <title>FitTrack - Calorie Tracker</title>
+    
+    <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="./styles/main.css">
+    
+    <!-- Feather Icons for a clean icon set -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
+        /* ========================================
+        ==         MODERN UI REDESIGN         ==
+        ========================================
+        * High-Security Login & Profile Icon
+        * Glassmorphism effect for cards
+        * Vibrant gradient background
+        * Fully responsive design w/ Hamburger Menu
+        * Smooth animations and transitions
+        ========================================
+        */
+
+        /* Custom Styles */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Light background for the app */
-            color: #333;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.5s, color 0.5s;
+            background-image: var(--bg-gradient);
         }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+
+        /* Base styles for light mode */
+        :root {
+            --bg-color: #f0f2f5;
+            --bg-gradient: linear-gradient(135deg, #f5eefc 0%, #dcecfc 100%);
+            --card-bg-color: rgba(255, 255, 255, 0.55);
+            --card-border-color: rgba(255, 255, 255, 0.7);
+            --text-color: #1a202c;
+            --text-muted-color: #4a5568;
+            --border-color: #e2e8f0;
+            --primary-color: #6366f1;
+            --primary-color-light: rgba(99, 102, 241, 0.1);
+            --primary-color-dark: #4f46e5;
+            --danger-color: #ef4444;
+            --shadow-color: rgba(0, 0, 0, 0.05);
         }
-        ::-webkit-scrollbar-track {
-            background: #f0f4f8;
-            border-radius: 10px;
+
+        /* Dark mode styles */
+        .dark {
+            --bg-color: #1a202c;
+            --bg-gradient: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            --card-bg-color: rgba(45, 55, 72, 0.6);
+            --card-border-color: rgba(255, 255, 255, 0.1);
+            --text-color: #edf2f7;
+            --text-muted-color: #a0aec0;
+            --border-color: #4a5568;
+            --primary-color: #818cf8;
+            --primary-color-light: rgba(129, 140, 248, 0.15);
+            --primary-color-dark: #6366f1;
+            --shadow-color: rgba(0, 0, 0, 0.2);
         }
-        ::-webkit-scrollbar-thumb {
-            background: #a8b9c7;
-            border-radius: 10px;
+        
+        /* Glassmorphism Card Style */
+        .card {
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--card-border-color);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px 0 var(--shadow-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #7b94b1;
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px 0 var(--shadow-color);
         }
+        
+        .text-muted { color: var(--text-muted-color); }
+        .bg-primary { background-color: var(--primary-color); }
+        .hover\:bg-primary-dark:hover { background-color: var(--primary-color-dark); }
+        .bg-primary-light { background-color: var(--primary-color-light); }
+        .text-primary { color: var(--primary-color); }
+        .border-primary { border-color: var(--primary-color); }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(136, 136, 136, 0.5); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(85, 85, 85, 0.7); }
+
+        .transition-all {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+
+        .modal { display: none; z-index: 50; }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        #add-meal-modal-content, #dev-popup-content {
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+        }
+
+        #food-autocomplete-list {
+            max-height: 200px; overflow-y: auto; z-index: 60;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        }
+        
+        #toast-container {
+            position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100;
+            display: flex; flex-direction: column; gap: 0.75rem;
+        }
+        .toast {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 1rem; border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            background-color: var(--card-bg-color); color: var(--text-color);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            transform: translateX(120%); transition: transform 0.3s ease-in-out;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast.success { border-left: 4px solid #34d399; }
+        .toast.error { border-left: 4px solid #ef4444; }
+        .toast.info { border-left: 4px solid #3b82f6; }
+
+        #motivational-quote-container {
+            position: fixed; bottom: 1.5rem; left: 50%;
+            transform: translateX(-50%); z-index: 40;
+            width: calc(100% - 3rem); max-width: 600px;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        #motivational-quote-container.hide {
+            opacity: 0;
+            transform: translate(-50%, calc(100% + 1.5rem));
+        }
+        #motivational-quote-container .card {
+            box-shadow: 0 10px 30px -5px var(--shadow-color);
+        }
+        
+        #dark-mode-toggle + div { transition: background-color 0.3s ease; }
+        #dark-mode-toggle:checked + div { background-color: var(--primary-color); }
+
+        .form-input-modern {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid transparent;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .dark .form-input-modern {
+             background-color: rgba(0, 0, 0, 0.2);
+        }
+        .form-input-modern:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-color-light);
+        }
+        /* Improved visibility for auth inputs */
+        #auth-container .form-input-modern {
+            background-color: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .dark #auth-container .form-input-modern {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+
+        .btn-gradient {
+            background-image: linear-gradient(to right, var(--primary-color), var(--primary-color-dark));
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px -5px rgba(99, 102, 241, 0.6);
+        }
+        
+        .radio-peer:checked ~ .radio-label {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+        .dark .radio-peer:checked ~ .radio-label {
+             background-color: var(--primary-color);
+        }
+        
+        /* OTP Input Styles */
+        .otp-input {
+            text-align: center;
+            caret-color: var(--primary-color);
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
+        input[type=number] { -moz-appearance: textfield; }
+        @keyframes shake {
+            10%, 90% { transform: translateX(-1px); }
+            20%, 80% { transform: translateX(2px); }
+            30%, 50%, 70% { transform: translateX(-4px); }
+            40%, 60% { transform: translateX(4px); }
+        }
+        .animate-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="antialiased">
 
-    <!-- Top Navigation Bar -->
-    <header class="bg-white shadow-sm p-4 flex items-center justify-between sticky top-0 z-10">
-        <div class="flex items-center space-x-2">
-            <h1 class="text-2xl font-bold text-blue-600">FitTrack</h1>
-        </div>
-        <div class="flex items-center space-x-4">
-            <button id="dark-mode-toggle" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                <i class="fas fa-moon text-xl text-gray-700"></i>
-            </button>
-            <button class="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                <i class="fas fa-bell text-xl text-gray-700"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <main class="flex-grow p-4 pb-20 overflow-y-auto">
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="page active">
-            <h2 class="text-2xl font-semibold mb-6">Today's Summary</h2>
-
-            <!-- Calories & Macros Overview -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6 flex flex-col items-center">
-                <div class="w-full flex justify-around items-center mb-6">
-                    <button id="dashboard-calories-btn" class="px-4 py-2 rounded-full bg-blue-500 text-white font-medium shadow-md">Calories</button>
-                    <button id="dashboard-macros-btn" class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-medium">Macros</button>
+    <!-- Login/Registration Screen -->
+    <div id="auth-container" class="min-h-screen w-full flex items-center justify-center p-4">
+        <div class="card w-full max-w-md p-6 sm:p-8 rounded-2xl">
+            <!-- Page 1: Registration Form -->
+            <div id="registration-page">
+                <div class="flex justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9.09 9.09.41-4.14 4.14.41-4.14 4.14-.41-4.14z"></path></svg>
                 </div>
-
-                <!-- Calories Chart -->
-                <div id="calories-chart-container" class="relative w-48 h-48 flex items-center justify-center">
-                    <canvas id="caloriesChart"></canvas>
-                    <div class="absolute text-3xl font-bold text-gray-800" id="calories-consumed-display">1500</div>
-                </div>
-                <div class="flex justify-around w-full mt-4 text-sm font-medium">
-                    <div class="text-center">
-                        <div class="w-3 h-3 bg-blue-500 rounded-full inline-block mr-1"></div> Consumed: <span id="calories-consumed-val">1500</span>
-                    </div>
-                    <div class="text-center">
-                        <div class="w-3 h-3 bg-orange-400 rounded-full inline-block mr-1"></div> Burned: <span id="calories-burned-val">300</span>
-                    </div>
-                    <div class="text-center">
-                        <div class="w-3 h-3 bg-red-500 rounded-full inline-block mr-1"></div> Goal: <span id="calories-goal-val">1800</span>
-                    </div>
-                </div>
-
-                <!-- Macros Chart (Initially hidden) -->
-                <div id="macros-chart-container" class="hidden w-full flex justify-around mt-6">
-                    <div class="flex flex-col items-center">
-                        <div class="relative w-24 h-24 mb-2">
-                            <canvas id="proteinChart"></canvas>
-                            <div class="absolute inset-0 flex items-center justify-center text-lg font-bold text-gray-800" id="protein-consumed-display">245g</div>
-                        </div>
-                        <span class="text-sm font-medium text-orange-500">Protein</span>
-                        <span class="text-xs text-gray-600" id="protein-goal-display">245g / 300g</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="relative w-24 h-24 mb-2">
-                            <canvas id="carbsChart"></canvas>
-                            <div class="absolute inset-0 flex items-center justify-center text-lg font-bold text-gray-800" id="carbs-consumed-display">0g</div>
-                        </div>
-                        <span class="text-sm font-medium text-green-500">Carbs</span>
-                        <span class="text-xs text-gray-600" id="carbs-goal-display">0g / 300g</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="relative w-24 h-24 mb-2">
-                            <canvas id="fatsChart"></canvas>
-                            <div class="absolute inset-0 flex items-center justify-center text-lg font-bold text-gray-800" id="fats-consumed-display">12g</div>
-                        </div>
-                        <span class="text-sm font-medium text-purple-500">Fats</span>
-                        <span class="text-xs text-gray-600" id="fats-goal-display">12g / 70g</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Daily Water Intake -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="text-blue-500 text-3xl">
-                        <i class="fas fa-tint"></i>
+                <h1 class="text-2xl sm:text-3xl font-bold text-center">Create Account</h1>
+                <p class="text-muted text-center mb-6 mt-1">Let's get you set up. Your fitness journey starts here.</p>
+                <form id="registration-form" class="space-y-4">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-muted">Username</label>
+                        <input type="text" id="username" name="username" required class="form-input-modern mt-1 block w-full rounded-lg p-2.5">
                     </div>
                     <div>
-                        <p class="font-semibold text-lg">Daily Water Intake</p>
-                        <div class="flex items-center mt-1">
-                            <button id="water-remove" class="text-gray-500 px-2">-</button>
-                            <div class="relative w-24 h-8 bg-blue-100 rounded-full overflow-hidden mx-2">
-                                <div id="water-fill" class="h-full bg-blue-500 rounded-full" style="width: 50%;"></div>
-                                <span id="water-display" class="absolute inset-0 flex items-center justify-center text-xs font-medium text-blue-900">32 oz / 64 oz</span>
-                            </div>
-                            <button id="water-add" class="text-blue-500 px-2">+</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Steps Walked -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="text-green-500 text-3xl">
-                        <i class="fas fa-walking"></i>
+                        <label for="mobile" class="block text-sm font-medium text-muted">Mobile Number</label>
+                        <input type="tel" id="mobile" name="mobile" required pattern="[0-9]{10}" placeholder="10-digit number" class="form-input-modern mt-1 block w-full rounded-lg p-2.5">
                     </div>
                     <div>
-                        <p class="font-semibold text-lg">Steps Walked</p>
-                        <div class="relative w-24 h-24 flex items-center justify-center mt-2">
-                            <canvas id="stepsChart"></canvas>
-                            <div class="absolute text-xl font-bold text-gray-800" id="steps-display">7,550</div>
-                        </div>
-                        <p class="text-sm text-gray-600 mt-1" id="steps-goal-display">Goal: 10,000 steps</p>
+                        <button type="submit" class="w-full mt-2 btn-gradient font-semibold py-3 px-4 rounded-lg">
+                            Register
+                        </button>
                     </div>
-                </div>
-                <button id="add-steps-btn" class="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-md">
-                    <i class="fas fa-plus"></i>
-                </button>
+                </form>
             </div>
 
-            <!-- Exercise Summary -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="text-red-500 text-3xl">
-                        <i class="fas fa-running"></i>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-lg">Exercise</p>
-                        <p class="text-gray-600 mt-1"><span id="exercise-time-display">30 minutes</span> / <span id="exercise-calories-display">350 Cals</span></p>
-                    </div>
+            <!-- Page 2: OTP Verification -->
+            <div id="otp-page" class="hidden text-center">
+                <div class="flex justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9.09 9.09.41-4.14 4.14.41-4.14 4.14-.41-4.14z"></path></svg>
                 </div>
-                <button id="add-exercise-btn" class="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-md">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
+                <h1 class="text-2xl sm:text-3xl font-bold">Account Verification</h1>
+                <p class="text-muted mt-2 mb-4">
+                    A secure code has been sent to <span id="mobile-number-display" class="font-semibold text-primary"></span>
+                </p>
+                <p class="text-xs text-muted">(😁your code is <strong id="generated-otp-display" class="text-primary"></strong>)</p>
 
-            <!-- Weight Tracking -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-4">
-                        <div class="text-purple-500 text-3xl">
-                            <i class="fas fa-weight-hanging"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-lg">Weight Tracking</p>
-                            <p class="text-gray-600 mt-1" id="bmi-display">Current: <span id="current-weight-val">70</span> kg</p>
-                            <p class="text-sm text-gray-500" id="bmi-status">You have a healthy BMI</p>
-                        </div>
-                    </div>
-                    <button id="add-weight-btn" class="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-md">
-                        <i class="fas fa-plus"></i>
+                <div id="otp-container" class="flex justify-center gap-2 sm:gap-3 my-6">
+                    <input type="number" class="otp-input form-input-modern w-10 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl" maxlength="1" data-index="0">
+                    <input type="number" class="otp-input form-input-modern w-10 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl" maxlength="1" data-index="1">
+                    <input type="number" class="otp-input form-input-modern w-10 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl" maxlength="1" data-index="2">
+                    <input type="number" class="otp-input form-input-modern w-10 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl" maxlength="1" data-index="3">
+                    <input type="number" class="otp-input form-input-modern w-10 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl" maxlength="1" data-index="4">
+                    <input type="number" class="otp-input form-input-modern w-10 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl" maxlength="1" data-index="5">
+                </div>
+                <div class="mt-8">
+                    <button id="verify-btn" class="w-full btn-gradient font-semibold py-3 px-4 rounded-lg">
+                        Verify Account
                     </button>
                 </div>
-                <div class="w-full h-48">
-                    <canvas id="weightChart"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <!-- Meal Logging Section -->
-        <section id="meal-logging" class="page hidden">
-            <h2 class="text-2xl font-semibold mb-6">Meal Logging</h2>
-
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <div class="relative mb-4">
-                    <input type="text" id="food-search-input" placeholder="Search for food (e.g., 2 roti, 1 dal)" class="w-full p-3 pr-10 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button id="food-search-btn" class="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500">
-                        <i class="fas fa-search"></i>
+                <div id="otp-message-box" class="mt-4 text-sm font-medium text-red-500 hidden"></div>
+                <div class="mt-6">
+                    <button id="back-to-reg-btn" type="button" class="text-sm text-muted hover:text-primary transition-colors">
+                        &larr; Go Back
                     </button>
                 </div>
-                <div id="search-results" class="mb-4">
-                    <!-- Search results will be appended here -->
-                </div>
-
-                <div class="flex flex-wrap justify-center gap-2 mb-6">
-                    <button class="meal-category-btn px-4 py-2 rounded-full bg-blue-500 text-white font-medium" data-category="Breakfast">Breakfast</button>
-                    <button class="meal-category-btn px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-medium" data-category="Lunch">Lunch</button>
-                    <button class="meal-category-btn px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-medium" data-category="Dinner">Dinner</button>
-                    <button class="meal-category-btn px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-medium" data-category="Snacks">Snacks</button>
-                </div>
-
-                <div id="meal-entries">
-                    <!-- Meal entries will be listed here -->
-                </div>
-
-                <button id="add-custom-recipe-btn" class="w-full bg-green-500 text-white p-3 rounded-xl shadow-md mt-4 hover:bg-green-600 transition-colors">
-                    Add Custom Recipe
-                </button>
             </div>
-        </section>
 
-        <!-- Nutrition Analysis Section -->
-        <section id="nutrition-analysis" class="page hidden">
-            <h2 class="text-2xl font-semibold mb-6">Nutrition Analysis</h2>
+             <!-- Page 3: Success Message -->
+            <div id="success-page" class="hidden text-center">
+                <svg class="mx-auto h-16 w-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h1 class="text-2xl sm:text-3xl font-bold mt-4">Login Successful!</h1>
+                <p class="text-muted mt-2">Redirecting to your dashboard...</p>
+            </div>
+        </div>
+    </div>
 
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <div class="flex justify-around mb-6 border-b border-gray-200">
-                    <button class="nutrition-tab-btn flex-1 py-3 text-center text-lg font-medium text-blue-600 border-b-2 border-blue-600" data-tab="calories">Calories</button>
-                    <button class="nutrition-tab-btn flex-1 py-3 text-center text-lg font-medium text-gray-600" data-tab="nutrients">Nutrients</button>
-                    <button class="nutrition-tab-btn flex-1 py-3 text-center text-lg font-medium text-gray-600" data-tab="macros">Macros</button>
+    <!-- Main App Container -->
+    <div id="app-container" class="min-h-screen flex-col md:flex-row hidden">
+        <!-- Mobile Top Navbar -->
+        <div id="mobile-navbar" class="md:hidden fixed top-0 left-0 right-0 h-16 px-4 flex items-center justify-between z-30 card rounded-none border-b">
+            <button id="menu-toggle" class="p-2 -ml-2">
+                <i data-feather="menu" class="w-6 h-6"></i>
+            </button>
+            <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9.09 9.09.41-4.14 4.14.41-4.14 4.14-.41-4.14z"></path></svg>
+                <h1 class="text-xl font-bold tracking-tight">FitTrack</h1>
+            </div>
+            <div id="mobile-profile-avatar" class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm flex-shrink-0"></div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="menu-overlay" class="md:hidden fixed inset-0 bg-black/40 z-30 hidden"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="w-64 card rounded-none md:rounded-r-2xl border-b md:border-r md:border-b-0 p-4 md:p-6 flex-shrink-0 m-0 md:m-4 md:mr-0 flex flex-col fixed inset-y-0 left-0 z-40 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div>
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9.09 9.09.41-4.14 4.14.41-4.14 4.14-.41-4.14z"></path></svg>
+                        <h1 class="text-2xl font-bold tracking-tight">FitTrack</h1>
+                    </div>
+                    <button id="menu-close" class="md:hidden p-2 -mr-2">
+                        <i data-feather="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <nav class="space-y-2">
+                    <a href="#dashboard" class="nav-link active flex items-center gap-3 px-4 py-2.5 rounded-lg font-semibold transition-all">
+                        <i data-feather="home" class="w-5 h-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#progress" class="nav-link flex items-center gap-3 px-4 py-2.5 rounded-lg font-semibold text-muted hover:text-primary transition-all">
+                        <i data-feather="trending-up" class="w-5 h-5"></i>
+                        <span>Progress</span>
+                    </a>
+                    <a href="#calculators" class="nav-link flex items-center gap-3 px-4 py-2.5 rounded-lg font-semibold text-muted hover:text-primary transition-all">
+                        <i data-feather="cpu" class="w-5 h-5"></i>
+                        <span>Calculators</span>
+                    </a>
+                    <a href="#settings" class="nav-link flex items-center gap-3 px-4 py-2.5 rounded-lg font-semibold text-muted hover:text-primary transition-all">
+                        <i data-feather="settings" class="w-5 h-5"></i>
+                        <span>Settings</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="mt-auto pt-8">
+                 <div id="profile-section" class="flex items-center gap-3 mb-4 hidden">
+                    <div id="profile-avatar" class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg flex-shrink-0"></div>
+                    <div class="flex-1 overflow-hidden">
+                        <p id="profile-name" class="font-semibold truncate"></p>
+                        <button id="logout-button" class="text-xs text-muted hover:text-danger transition-colors">Logout</button>
+                    </div>
+                 </div>
+                 <div class="border-t border-white/10 dark:border-white/10 pt-4 mt-4 space-y-4">
+                    <p id="greeting" class="text-sm text-center text-muted"></p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-muted text-sm font-medium">Dark Mode</span>
+                        <label for="dark-mode-toggle" class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" value="" id="dark-mode-toggle" class="sr-only peer">
+                          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600"></div>
+                        </label>
+                    </div>
+                    <p class="text-xs text-center text-muted/50">Made with ❤️ by Ashutosh Roy</p>
+                 </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto">
+
+            <!-- ======================= -->
+            <!-- == DASHBOARD SECTION == -->
+            <!-- ======================= -->
+            <section id="dashboard-page" class="page">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <div>
+                        <h2 class="text-2xl sm:text-3xl font-bold">Today's Dashboard</h2>
+                        <p class="text-muted">A summary of your daily activity.</p>
+                    </div>
+                    <button id="open-add-meal-modal" class="bg-primary text-white hover:bg-primary-dark px-6 py-3 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 w-full sm:w-auto justify-center">
+                        <i data-feather="plus" class="w-5 h-5"></i>
+                        <span class="font-semibold">Log Food</span>
+                    </button>
                 </div>
 
-                <!-- Calories Analysis Tab -->
-                <div id="calories-analysis-tab" class="nutrition-tab-content active">
-                    <div class="relative w-48 h-48 mx-auto flex items-center justify-center mb-6">
-                        <canvas id="mealCaloriesChart"></canvas>
-                        <div class="absolute text-3xl font-bold text-gray-800" id="total-calories-percent">88%</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="card p-6 rounded-xl">
+                        <h3 class="text-muted font-medium mb-2">Calories Consumed</h3>
+                        <p class="text-3xl font-bold"><span id="total-calories-consumed">0</span> kcal</p>
                     </div>
-                    <div id="meal-calorie-breakdown" class="grid grid-cols-2 gap-4 text-sm font-medium">
-                        <!-- Meal calorie breakdown items will be appended here -->
+                    <div class="card p-6 rounded-xl">
+                        <h3 class="text-muted font-medium mb-2">Calorie Goal</h3>
+                        <p class="text-3xl font-bold"><span id="calorie-goal-display">2000</span> kcal</p>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-gray-200">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-semibold">Total Calories</span>
-                            <span id="analysis-total-calories">1750</span>
-                        </div>
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-semibold">Consumed</span>
-                            <span id="analysis-consumed-calories">1550</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="font-semibold">Burned</span>
-                            <span id="analysis-burned-calories">50</span>
-                        </div>
+                     <div class="card p-6 rounded-xl">
+                        <h3 class="text-muted font-medium mb-2">Calories Burned</h3>
+                        <p class="text-3xl font-bold"><span id="total-calories-burned">0</span> kcal</p>
+                    </div>
+                    <div class="card p-6 rounded-xl">
+                        <h3 class="text-muted font-medium mb-2">Net Calories</h3>
+                        <p class="text-3xl font-bold"><span id="net-calories">0</span> kcal</p>
                     </div>
                 </div>
 
-                <!-- Nutrients Analysis Tab (Placeholder) -->
-                <div id="nutrients-analysis-tab" class="nutrition-tab-content hidden">
-                    <p class="text-center text-gray-500 py-10">Detailed nutrient breakdown coming soon!</p>
+                <div class="card p-6 rounded-xl mb-6">
+                    <h3 class="font-semibold text-lg mb-4">Today's Goal Progress</h3>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
+                        <div id="calorie-progress-bar" class="bg-primary h-4 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-sm text-muted mt-2">
+                        <span>0%</span>
+                        <span id="calorie-progress-text">0 / 2000 kcal</span>
+                        <span>100%</span>
+                    </div>
                 </div>
 
-                <!-- Macros Analysis Tab -->
-                <div id="macros-analysis-tab" class="nutrition-tab-content hidden">
-                    <div class="relative w-48 h-48 mx-auto flex items-center justify-center mb-6">
-                        <canvas id="nutritionMacrosChart"></canvas>
-                        <div class="absolute text-xl font-bold text-gray-800" id="macros-overall-percent"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="card p-6 rounded-xl text-center">
+                            <h4 class="font-semibold mb-2">Protein</h4>
+                            <div class="relative w-32 h-32 mx-auto">
+                                <canvas id="protein-chart"></canvas>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span id="protein-consumed-text" class="text-xl font-bold">0g</span>
+                                </div>
+                            </div>
+                            <p class="text-muted text-sm mt-2">Goal: <span id="protein-goal-text">150</span>g</p>
+                        </div>
+                        <div class="card p-6 rounded-xl text-center">
+                            <h4 class="font-semibold mb-2">Carbs</h4>
+                            <div class="relative w-32 h-32 mx-auto">
+                                <canvas id="carbs-chart"></canvas>
+                                 <div class="absolute inset-0 flex items-center justify-center">
+                                    <span id="carbs-consumed-text" class="text-xl font-bold">0g</span>
+                                </div>
+                            </div>
+                            <p class="text-muted text-sm mt-2">Goal: <span id="carbs-goal-text">200</span>g</p>
+                        </div>
+                        <div class="card p-6 rounded-xl text-center">
+                            <h4 class="font-semibold mb-2">Fat</h4>
+                            <div class="relative w-32 h-32 mx-auto">
+                                <canvas id="fat-chart"></canvas>
+                                 <div class="absolute inset-0 flex items-center justify-center">
+                                    <span id="fat-consumed-text" class="text-xl font-bold">0g</span>
+                                </div>
+                            </div>
+                            <p class="text-muted text-sm mt-2">Goal: <span id="fat-goal-text">67</span>g</p>
+                        </div>
                     </div>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="font-medium text-orange-500">Protein</span>
-                            <span class="text-gray-700" id="analysis-protein-val">241g / 300g</span>
-                            <div class="w-24 bg-gray-200 rounded-full h-2.5">
-                                <div class="bg-orange-500 h-2.5 rounded-full" id="analysis-protein-bar" style="width: 80%;"></div>
+                    <div class="card p-6 rounded-xl flex flex-col items-center justify-center">
+                        <h4 class="font-semibold mb-4">Water Intake</h4>
+                        <div class="flex items-center gap-4">
+                             <button id="decrease-water" class="bg-gray-200 dark:bg-gray-600 rounded-full p-2 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">
+                                <i data-feather="minus" class="w-6 h-6"></i>
+                            </button>
+                            <div class="text-center">
+                                <i data-feather="droplet" class="w-10 h-10 text-blue-500 mx-auto"></i>
+                                <p class="text-2xl font-bold mt-2"><span id="water-intake-text">0</span> glasses</p>
+                            </div>
+                            <button id="increase-water" class="bg-gray-200 dark:bg-gray-600 rounded-full p-2 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">
+                                <i data-feather="plus" class="w-6 h-6"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ===================== -->
+            <!-- == PROGRESS SECTION  == -->
+            <!-- ===================== -->
+            <section id="progress-page" class="page hidden">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-6">Progress Tracker</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 card p-6 rounded-xl">
+                        <h3 class="font-semibold text-lg mb-4">Log Your Stats</h3>
+                        <form id="log-progress-form" class="space-y-4">
+                            <div>
+                                <label for="weight-input" class="flex items-center text-sm font-medium text-muted mb-1">
+                                    <i data-feather="bar-chart-2" class="w-4 h-4 mr-2"></i>
+                                    Current Weight (kg)
+                                </label>
+                                <input type="number" id="weight-input" step="0.1" class="form-input-modern mt-1 block w-full rounded-lg p-2.5" required>
+                            </div>
+                             <div>
+                                <label for="exercise-input" class="flex items-center text-sm font-medium text-muted mb-1">
+                                    <i data-feather="trending-up" class="w-4 h-4 mr-2"></i>
+                                    Calories Burned (kcal)
+                                </label>
+                                <input type="number" id="exercise-input" class="form-input-modern mt-1 block w-full rounded-lg p-2.5">
+                            </div>
+                            <button type="submit" class="w-full btn-gradient font-semibold py-2.5 rounded-lg flex items-center justify-center">
+                                <span class="btn-text">Log Progress</span>
+                                <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin hidden btn-loader"></div>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-2 card p-6 rounded-xl">
+                        <h3 class="font-semibold text-lg mb-4">Weight History</h3>
+                        <div class="h-80">
+                            <canvas id="weight-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================= -->
+            <!-- == CALCULATORS SECTION == -->
+            <!-- ========================= -->
+            <section id="calculators-page" class="page hidden">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-6">Health & Fitness Calculators</h2>
+                
+                <!-- Maintenance Calorie Calculator -->
+                <div class="card p-6 sm:p-8 rounded-xl mt-6">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold">Maintenance Calorie Calculator</h3>
+                        <p class="mt-2 text-muted">Estimate your daily calorie needs to maintain your current weight.</p>
+                    </div>
+                    <form id="maintenance-calorie-form" class="space-y-6 max-w-xl mx-auto">
+                        <div>
+                            <label class="block text-sm font-medium text-muted mb-2">Gender</label>
+                            <div class="flex gap-4">
+                                <label class="flex-1">
+                                    <input type="radio" name="mc-gender" value="male" class="sr-only radio-peer" checked>
+                                    <div class="radio-label w-full p-3 text-center bg-black/5 dark:bg-white/5 rounded-lg cursor-pointer transition-all">Male</div>
+                                </label>
+                                <label class="flex-1">
+                                    <input type="radio" name="mc-gender" value="female" class="sr-only radio-peer">
+                                    <div class="radio-label w-full p-3 text-center bg-black/5 dark:bg-white/5 rounded-lg cursor-pointer transition-all">Female</div>
+                                </label>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="font-medium text-green-500">Carbs</span>
-                            <span class="text-gray-700" id="analysis-carbs-val">116g / 300g</span>
-                            <div class="w-24 bg-gray-200 rounded-full h-2.5">
-                                <div class="bg-green-500 h-2.5 rounded-full" id="analysis-carbs-bar" style="width: 40%;"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label for="mc-age" class="block text-sm font-medium text-muted">Age</label>
+                                <input type="number" id="mc-age" class="form-input-modern mt-1 block w-full rounded-lg p-2.5" placeholder="e.g., 25" required>
                             </div>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="font-medium text-purple-500">Fats</span>
-                            <span class="text-gray-700" id="analysis-fats-val">19g / 70g</span>
-                            <div class="w-24 bg-gray-200 rounded-full h-2.5">
-                                <div class="bg-purple-500 h-2.5 rounded-full" id="analysis-fats-bar" style="width: 60%;"></div>
+                            <div>
+                                <label for="mc-weight" class="block text-sm font-medium text-muted">Weight (kg)</label>
+                                <input type="number" id="mc-weight" class="form-input-modern mt-1 block w-full rounded-lg p-2.5" placeholder="e.g., 70" required>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Exercise & Weight Tracking Section -->
-        <section id="exercise-weight-tracking" class="page hidden">
-            <h2 class="text-2xl font-semibold mb-6">Exercise & Weight Tracking</h2>
-
-            <!-- Log Workout -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <h3 class="text-xl font-semibold mb-4">Log Workout</h3>
-                <div class="mb-4">
-                    <label for="workout-type" class="block text-gray-700 font-medium mb-2">Workout Type</label>
-                    <select id="workout-type" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="running">Running</option>
-                        <option value="walking">Walking</option>
-                        <option value="cycling">Cycling</option>
-                        <option value="swimming">Swimming</option>
-                        <option value="weights">Weight Training</option>
-                        <option value="yoga">Yoga</option>
-                        <option value="custom">Custom Workout</option>
-                    </select>
-                </div>
-                <div class="mb-4" id="custom-workout-name-container" style="display: none;">
-                    <label for="custom-workout-name" class="block text-gray-700 font-medium mb-2">Custom Workout Name</label>
-                    <input type="text" id="custom-workout-name" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., HIIT workout">
-                </div>
-                <div class="mb-4">
-                    <label for="workout-duration" class="block text-gray-700 font-medium mb-2">Duration (minutes)</label>
-                    <input type="number" id="workout-duration" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 30">
-                </div>
-                <div class="mb-4">
-                    <label for="workout-calories" class="block text-gray-700 font-medium mb-2">Calories Burned</label>
-                    <input type="number" id="workout-calories" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 300">
-                </div>
-                <button id="log-workout-btn" class="w-full bg-blue-500 text-white p-3 rounded-xl shadow-md hover:bg-blue-600 transition-colors">
-                    Log Workout
-                </button>
-            </div>
-
-            <!-- Log Body Weight -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <h3 class="text-xl font-semibold mb-4">Log Body Weight</h3>
-                <div class="mb-4">
-                    <label for="body-weight-input" class="block text-gray-700 font-medium mb-2">Weight (kg)</label>
-                    <input type="number" id="body-weight-input" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 70">
-                </div>
-                <button id="log-body-weight-btn" class="w-full bg-blue-500 text-white p-3 rounded-xl shadow-md hover:bg-blue-600 transition-colors">
-                    Log Weight
-                </button>
-                <div class="mt-4 w-full h-48">
-                    <canvas id="dailyWeightChart"></canvas>
-                </div>
-                <p class="text-center text-sm text-gray-600 mt-2" id="bmi-status-large">Current BMI: <span id="bmi-value"></span> - <span id="bmi-risk"></span></p>
-            </div>
-        </section>
-
-        <!-- User Settings Section -->
-        <section id="user-settings" class="page hidden">
-            <h2 class="text-2xl font-semibold mb-6">Settings</h2>
-
-            <!-- Daily Goals -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <h3 class="text-xl font-semibold mb-4">Daily Goals</h3>
-                <div class="mb-4">
-                    <label for="calorie-limit-input" class="block text-gray-700 font-medium mb-2">Calorie Limit (kcal)</label>
-                    <input type="number" id="calorie-limit-input" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" value="2000">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-medium mb-2">Macro Ratios</label>
-                    <div class="flex space-x-2 mb-2">
-                        <button id="macro-gram-btn" class="px-4 py-2 rounded-full bg-blue-500 text-white text-sm">Gram-based</button>
-                        <button id="macro-percent-btn" class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 text-sm">Percentage-based</button>
-                    </div>
-                    <div id="macro-inputs-gram">
-                        <div class="mb-2">
-                            <label for="protein-goal-gram" class="block text-gray-700">Protein (g)</label>
-                            <input type="number" id="protein-goal-gram" class="w-full p-2 rounded-lg border border-gray-300" value="150">
-                        </div>
-                        <div class="mb-2">
-                            <label for="carbs-goal-gram" class="block text-gray-700">Carbs (g)</label>
-                            <input type="number" id="carbs-goal-gram" class="w-full p-2 rounded-lg border border-gray-300" value="250">
+                            <div>
+                                <label for="mc-height" class="block text-sm font-medium text-muted">Height (cm)</label>
+                                <input type="number" id="mc-height" class="form-input-modern mt-1 block w-full rounded-lg p-2.5" placeholder="e.g., 175" required>
+                            </div>
                         </div>
                         <div>
-                            <label for="fats-goal-gram" class="block text-gray-700">Fats (g)</label>
-                            <input type="number" id="fats-goal-gram" class="w-full p-2 rounded-lg border border-gray-300" value="60">
-                        </div>
-                    </div>
-                    <div id="macro-inputs-percent" class="hidden">
-                        <div class="mb-2">
-                            <label for="protein-goal-percent" class="block text-gray-700">Protein (%)</label>
-                            <input type="number" id="protein-goal-percent" class="w-full p-2 rounded-lg border border-gray-300" value="30">
-                        </div>
-                        <div class="mb-2">
-                            <label for="carbs-goal-percent" class="block text-gray-700">Carbs (%)</label>
-                            <input type="number" id="carbs-goal-percent" class="w-full p-2 rounded-lg border border-gray-300" value="50">
+                            <label for="mc-activity" class="block text-sm font-medium text-muted">Activity Level</label>
+                            <select id="mc-activity" class="form-input-modern mt-1 block w-full rounded-lg p-2.5">
+                                <option value="1.2">Sedentary (little or no exercise)</option>
+                                <option value="1.375">Lightly active (1-3 days/week)</option>
+                                <option value="1.55">Moderately active (3-5 days/week)</option>
+                                <option value="1.725">Very active (6-7 days a week)</option>
+                                <option value="1.9">Extra active (very hard exercise/job)</option>
+                            </select>
                         </div>
                         <div>
-                            <label for="fats-goal-percent" class="block text-gray-700">Fats (%)</label>
-                            <input type="number" id="fats-goal-percent" class="w-full p-2 rounded-lg border border-gray-300" value="20">
+                            <button type="submit" class="w-full btn-gradient font-semibold py-3 px-4 rounded-lg">Calculate</button>
+                        </div>
+                    </form>
+                    <div id="mc-result" class="mt-6 text-center hidden">
+                        <p class="text-lg text-muted">Your estimated maintenance calories are:</p>
+                        <p id="mc-result-value" class="text-4xl font-bold text-primary my-2">2,500</p>
+                        <p class="text-lg text-muted">calories/day</p>
+                    </div>
+                    <div id="mc-error-message" class="mt-4 text-center text-red-500 font-medium hidden"></div>
+                </div>
+
+                <!-- BMR & BMI Calculators -->
+                <div class="card p-6 sm:p-8 rounded-xl mt-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div>
+                            <h4 class="font-semibold text-xl mb-3">BMI Calculator</h4>
+                            <form id="bmi-form" class="space-y-4">
+                                <div>
+                                    <label for="bmi-height" class="flex items-center text-sm font-medium text-muted mb-1"><i data-feather="maximize" class="w-4 h-4 mr-2"></i>Height (cm)</label>
+                                    <input type="number" placeholder="e.g., 175" id="bmi-height" class="form-input-modern w-full p-2.5 rounded-lg" required>
+                                </div>
+                                <div>
+                                    <label for="bmi-weight" class="flex items-center text-sm font-medium text-muted mb-1"><i data-feather="bar-chart-2" class="w-4 h-4 mr-2"></i>Weight (kg)</label>
+                                    <input type="number" placeholder="e.g., 70" id="bmi-weight" class="form-input-modern w-full p-2.5 rounded-lg" required>
+                                </div>
+                                <button type="submit" class="w-full btn-gradient font-semibold py-2.5 rounded-lg">Calculate BMI</button>
+                            </form>
+                            <p id="bmi-result" class="mt-4 text-center font-semibold h-6"></p>
+                        </div>
+                        <div class="border-t md:border-t-0 md:border-l border-white/10 dark:border-white/10 md:pl-8 pt-6 md:pt-0">
+                            <h4 class="font-semibold text-xl mb-3">BMR Calculator</h4>
+                            <form id="bmr-form" class="space-y-4">
+                               <div class="grid grid-cols-2 gap-3">
+                                   <div>
+                                       <label for="bmr-age" class="flex items-center text-sm font-medium text-muted mb-1"><i data-feather="gift" class="w-4 h-4 mr-2"></i>Age</label>
+                                       <input type="number" id="bmr-age" class="form-input-modern w-full p-2.5 rounded-lg" required>
+                                   </div>
+                                   <div>
+                                       <label for="bmr-gender" class="flex items-center text-sm font-medium text-muted mb-1"><i data-feather="users" class="w-4 h-4 mr-2"></i>Gender</label>
+                                        <select id="bmr-gender" class="form-input-modern w-full p-2.5 rounded-lg" required>
+                                            <option value="male">Male</option>
+                                            <option value="female">Female</option>
+                                        </select>
+                                   </div>
+                               </div>
+                               <div>
+                                   <label for="bmr-height" class="flex items-center text-sm font-medium text-muted mb-1"><i data-feather="maximize" class="w-4 h-4 mr-2"></i>Height (cm)</label>
+                                   <input type="number" id="bmr-height" class="form-input-modern w-full p-2.5 rounded-lg" required>
+                               </div>
+                               <div>
+                                   <label for="bmr-weight" class="flex items-center text-sm font-medium text-muted mb-1"><i data-feather="bar-chart-2" class="w-4 h-4 mr-2"></i>Weight (kg)</label>
+                                   <input type="number" id="bmr-weight" class="form-input-modern w-full p-2.5 rounded-lg" required>
+                               </div>
+                                <button type="submit" class="w-full btn-gradient font-semibold py-2.5 rounded-lg">Calculate BMR</button>
+                            </form>
+                            <p id="bmr-result" class="mt-4 text-center font-semibold h-6"></p>
                         </div>
                     </div>
                 </div>
-                <div class="mb-4">
-                    <label for="step-target-input" class="block text-gray-700 font-medium mb-2">Step Target</label>
-                    <input type="number" id="step-target-input" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" value="10000">
+            </section>
+
+            <!-- ===================== -->
+            <!-- == SETTINGS SECTION == -->
+            <!-- ===================== -->
+            <section id="settings-page" class="page hidden">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-6">Settings</h2>
+                <div class="card p-6 rounded-xl max-w-lg mx-auto">
+                    <form id="settings-form" class="space-y-6">
+                        <div>
+                            <label for="calorie-goal-input" class="block text-sm font-medium text-muted">Daily Calorie Goal (kcal)</label>
+                            <input type="number" id="calorie-goal-input" class="form-input-modern mt-1 block w-full rounded-lg p-2.5" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-muted">Macronutrient Ratio (%)</label>
+                            <div class="mt-2 grid grid-cols-3 gap-4">
+                                <div>
+                                    <label for="protein-ratio" class="block text-xs font-medium">Protein</label>
+                                    <input type="number" id="protein-ratio" class="form-input-modern mt-1 block w-full rounded-lg p-2.5" required>
+                                </div>
+                                 <div>
+                                    <label for="carbs-ratio" class="block text-xs font-medium">Carbs</label>
+                                    <input type="number" id="carbs-ratio" class="form-input-modern mt-1 block w-full rounded-lg p-2.5" required>
+                                </div>
+                                 <div>
+                                    <label for="fat-ratio" class="block text-xs font-medium">Fat</label>
+                                    <input type="number" id="fat-ratio" class="form-input-modern mt-1 block w-full rounded-lg p-2.5" required>
+                                </div>
+                            </div>
+                             <p id="ratio-error" class="text-red-500 text-sm mt-2 hidden">Ratios must add up to 100%.</p>
+                        </div>
+                        
+                        <div class="pt-4 flex justify-end gap-3">
+                            <button type="submit" class="bg-primary text-white hover:bg-primary-dark px-4 py-2 rounded-lg">Save Changes</button>
+                             <button type="button" id="reset-data-button" class="bg-danger text-white px-4 py-2 rounded-lg">Reset All Data</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="mb-4">
-                    <label for="water-target-input" class="block text-gray-700 font-medium mb-2">Water Target (oz)</label>
-                    <input type="number" id="water-target-input" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" value="64">
-                </div>
-                <button id="save-goals-btn" class="w-full bg-blue-500 text-white p-3 rounded-xl shadow-md hover:bg-blue-600 transition-colors">
-                    Save Goals
-                </button>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- Bottom Anchored Motivational Quote -->
+    <div id="motivational-quote-container" class="hidden">
+        <div class="card p-4 rounded-xl">
+             <p id="motivational-quote" class="text-sm text-center font-medium"></p>
+        </div>
+    </div>
+
+    <!-- Development Phase Popup -->
+    <div id="dev-popup" class="modal fixed inset-0 bg-black bg-opacity-60 p-4" role="dialog" aria-modal="true">
+        <div id="dev-popup-content" class="card rounded-xl p-6 w-full max-w-sm text-center">
+            <h3 class="text-xl font-bold mb-2">Welcome to FitTrack!</h3>
+            <p class="text-muted mb-4">This app is in the development phase. You may encounter bugs. Please report any issues. Thanks for joining us!</p>
+            <button id="close-dev-popup" class="w-full btn-gradient font-semibold py-2 px-4 rounded-lg">Got it!</button>
+        </div>
+    </div>
+
+
+    <!-- ================== -->
+    <!-- == MODAL DIALOGS == -->
+    <!-- ================== -->
+    <div id="add-meal-modal" class="modal fixed inset-0 bg-black bg-opacity-60 p-4" role="dialog" aria-modal="true" aria-labelledby="add-meal-modal-title">
+        <div class="card rounded-xl p-6 w-full max-w-md transform transition-all" id="add-meal-modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="add-meal-modal-title" class="text-xl font-bold">Log Food Item</h3>
+                <button id="close-add-meal-modal-btn" aria-label="Close dialog" class="text-muted hover:text-primary"><i data-feather="x"></i></button>
             </div>
-
-            <!-- Unit Settings -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <h3 class="text-xl font-semibold mb-4">Units</h3>
-                <div class="mb-4">
-                    <label for="unit-weight" class="block text-gray-700 font-medium mb-2">Weight Unit</label>
-                    <select id="unit-weight" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="kg">Kilograms (kg)</option>
-                        <option value="lbs">Pounds (lbs)</option>
-                    </select>
+            <form id="add-meal-form" class="space-y-4">
+                <div class="relative">
+                    <label for="food-search-input" class="block text-sm font-medium text-muted">Food Name</label>
+                    <input type="text" id="food-search-input" placeholder="e.g., Apple, Roti, Chicken Breast" class="mt-1 block w-full rounded-md p-2 border" style="border-color: var(--border-color); background-color: var(--card-bg-color);" autocomplete="off">
+                    <div id="food-autocomplete-list" class="absolute z-10 w-full rounded-md mt-1 hidden shadow-lg" style="background-color: var(--card-bg-color); border: 1px solid var(--border-color);"></div>
                 </div>
-                <div class="mb-4">
-                    <label for="unit-energy" class="block text-gray-700 font-medium mb-2">Energy Unit</label>
-                    <select id="unit-energy" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="kcal">Kilocalories (kcal)</option>
-                        <option value="kj">Kilojoules (kJ)</option>
-                    </select>
+                <div>
+                    <label for="food-quantity" class="block text-sm font-medium text-muted">Quantity (g)</label>
+                    <input type="number" id="food-quantity" placeholder="100" class="mt-1 block w-full rounded-md p-2 border" style="border-color: var(--border-color); background-color: var(--card-bg-color);" required>
                 </div>
-                <button id="save-units-btn" class="w-full bg-blue-500 text-white p-3 rounded-xl shadow-md hover:bg-blue-600 transition-colors">
-                    Save Units
-                </button>
-            </div>
-
-            <!-- Reminders -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <h3 class="text-xl font-semibold mb-4">Reminders</h3>
-                <div class="flex items-center justify-between mb-2">
-                    <label for="reminder-meals" class="text-gray-700">Log Meals</label>
-                    <label class="switch">
-                        <input type="checkbox" id="reminder-meals" checked>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="flex items-center justify-between">
-                    <label for="reminder-water" class="text-gray-700">Drink Water</label>
-                    <label class="switch">
-                        <input type="checkbox" id="reminder-water">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <button id="save-reminders-btn" class="w-full bg-blue-500 text-white p-3 rounded-xl shadow-md hover:bg-blue-600 transition-colors mt-4">
-                    Save Reminders
-                </button>
-            </div>
-        </section>
-    </main>
-
-    <!-- Bottom Navigation Bar -->
-    <nav class="bg-white shadow-lg fixed bottom-0 left-0 w-full z-20">
-        <ul class="flex justify-around py-3">
-            <li>
-                <button class="nav-item flex flex-col items-center text-blue-600" data-page="dashboard">
-                    <i class="fas fa-home text-xl mb-1"></i>
-                    <span class="text-xs">Dashboard</span>
-                </button>
-            </li>
-            <li>
-                <button class="nav-item flex flex-col items-center text-gray-500 hover:text-blue-600" data-page="meal-logging">
-                    <i class="fas fa-utensils text-xl mb-1"></i>
-                    <span class="text-xs">Meals</span>
-                </button>
-            </li>
-            <li>
-                <button class="nav-item flex flex-col items-center text-gray-500 hover:text-blue-600" data-page="nutrition-analysis">
-                    <i class="fas fa-chart-pie text-xl mb-1"></i>
-                    <span class="text-xs">Nutrition</span>
-                </button>
-            </li>
-            <li>
-                <button class="nav-item flex flex-col items-center text-gray-500 hover:text-blue-600" data-page="exercise-weight-tracking">
-                    <i class="fas fa-dumbbell text-xl mb-1"></i>
-                    <span class="text-xs">Fitness</span>
-                </button>
-            </li>
-            <li>
-                <button class="nav-item flex flex-col items-center text-gray-500 hover:text-blue-600" data-page="user-settings">
-                    <i class="fas fa-cog text-xl mb-1"></i>
-                    <span class="text-xs">Settings</span>
-                </button>
-            </li>
-        </ul>
-    </nav>
-
-    <!-- Modals for Add Steps, Add Exercise, Add Weight, Add Custom Recipe, Confirmation Messages -->
-    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"></div>
-
-    <!-- Add Steps Modal -->
-    <div id="add-steps-modal" class="modal-content hidden bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-sm z-50">
-        <h3 class="text-xl font-semibold mb-4">Add Steps</h3>
-        <label for="steps-input" class="block text-gray-700 font-medium mb-2">Number of Steps</label>
-        <input type="number" id="steps-input" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="e.g., 5000">
-        <div class="flex justify-end space-x-3">
-            <button class="close-modal-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700">Cancel</button>
-            <button id="save-steps-btn" class="px-4 py-2 rounded-lg bg-blue-500 text-white">Save</button>
+                 <div>
+                    <label for="meal-time" class="block text-sm font-medium text-muted">Time (Optional)</label>
+                    <input type="time" id="meal-time" class="mt-1 block w-full rounded-md p-2 border" style="border-color: var(--border-color); background-color: var(--card-bg-color);">
+                 </div>
+                 <div class="pt-2 flex justify-end">
+                    <button type="submit" class="bg-primary text-white hover:bg-primary-dark px-4 py-2 rounded-lg flex items-center gap-2">
+                        <span id="add-log-btn-text">Add to Log</span>
+                        <div id="add-log-loader" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin hidden"></div>
+                    </button>
+                 </div>
+            </form>
         </div>
     </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
 
-    <!-- Add Exercise Modal -->
-    <div id="add-exercise-modal" class="modal-content hidden bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-sm z-50">
-        <h3 class="text-xl font-semibold mb-4">Log Exercise</h3>
-        <label for="modal-workout-type" class="block text-gray-700 font-medium mb-2">Workout Type</label>
-        <select id="modal-workout-type" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-            <option value="running">Running</option>
-            <option value="walking">Walking</option>
-            <option value="cycling">Cycling</option>
-            <option value="swimming">Swimming</option>
-            <option value="weights">Weight Training</option>
-            <option value="yoga">Yoga</option>
-            <option value="custom">Custom Workout</option>
-        </select>
-        <div class="mb-4" id="modal-custom-workout-name-container" style="display: none;">
-            <label for="modal-custom-workout-name" class="block text-gray-700 font-medium mb-2">Custom Workout Name</label>
-            <input type="text" id="modal-custom-workout-name" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., HIIT workout">
-        </div>
-        <label for="modal-workout-duration" class="block text-gray-700 font-medium mb-2">Duration (minutes)</label>
-        <input type="number" id="modal-workout-duration" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="e.g., 30">
-        <label for="modal-workout-calories" class="block text-gray-700 font-medium mb-2">Calories Burned</label>
-        <input type="number" id="modal-workout-calories" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="e.g., 300">
-        <div class="flex justify-end space-x-3">
-            <button class="close-modal-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700">Cancel</button>
-            <button id="save-exercise-btn" class="px-4 py-2 rounded-lg bg-blue-500 text-white">Save</button>
-        </div>
-    </div>
+    const NUTRITIONIX_APP_ID = '4fe99f34';
+    const NUTRITIONIX_APP_KEY = 'f6c0e4fbbd96e8bee5bc3a9dc8b4a274';
 
-    <!-- Add Weight Modal -->
-    <div id="add-weight-modal" class="modal-content hidden bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-sm z-50">
-        <h3 class="text-xl font-semibold mb-4">Log Weight</h3>
-        <label for="modal-weight-input" class="block text-gray-700 font-medium mb-2">Weight (kg)</label>
-        <input type="number" id="modal-weight-input" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="e.g., 70">
-        <div class="flex justify-end space-x-3">
-            <button class="close-modal-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700">Cancel</button>
-            <button id="save-weight-btn" class="px-4 py-2 rounded-lg bg-blue-500 text-white">Save</button>
-        </div>
-    </div>
+    const motivationalQuotes = [
+        "The only bad workout is the one that didn't happen.",
+        "Your body can stand almost anything. It’s your mind that you have to convince.",
+        "Success isn’t always about greatness. It’s about consistency. Consistent hard work gains success.",
+        "Don't wish for a good body, work for it.",
+        "A healthy outside starts from the inside.",
+        "The journey of a thousand miles begins with a single step."
+    ];
 
-    <!-- Add Custom Recipe Modal -->
-    <div id="add-custom-recipe-modal" class="modal-content hidden bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-sm z-50">
-        <h3 class="text-xl font-semibold mb-4">Add Custom Recipe</h3>
-        <label for="recipe-name-input" class="block text-gray-700 font-medium mb-2">Recipe Name</label>
-        <input type="text" id="recipe-name-input" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="e.g., Grandma's Pasta">
+    let state = {
+        settings: {
+            calorieGoal: 2000, proteinRatio: 30, carbsRatio: 40, fatRatio: 30, darkMode: false
+        },
+        dailyLogs: {},
+        progress: []
+    };
+    
+    const today = new Date().toLocaleDateString('en-CA');
 
-        <label for="recipe-calories-input" class="block text-gray-700 font-medium mb-2">Total Calories (kcal)</label>
-        <input type="number" id="recipe-calories-input" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="e.g., 500">
+    function saveUserState(username, mobile) {
+        localStorage.setItem('fitTrackUser', JSON.stringify({ username, mobile }));
+    }
 
-        <label for="recipe-protein-input" class="block text-gray-700 font-medium mb-2">Protein (g)</label>
-        <input type="number" id="recipe-protein-input" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="e.g., 20">
+    function loadUserState() {
+        const user = localStorage.getItem('fitTrackUser');
+        return user ? JSON.parse(user) : null;
+    }
+    
+    function clearUserState() {
+        localStorage.removeItem('fitTrackUser');
+        localStorage.removeItem('fitTrackState'); // Also clear app state on logout
+    }
 
-        <label for="recipe-carbs-input" class="block text-gray-700 font-medium mb-2">Carbs (g)</label>
-        <input type="number" id="recipe-carbs-input" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="e.g., 60">
+    function saveState() {
+        const user = loadUserState();
+        if (!user) return; // Don't save state if no user is logged in
+        const stateString = JSON.stringify(state);
+        localStorage.setItem('fitTrackState', stateString);
+    }
 
-        <label for="recipe-fats-input" class="block text-gray-700 font-medium mb-2">Fats (g)</label>
-        <input type="number" id="recipe-fats-input" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="e.g., 15">
+    function loadState() {
+        const savedState = localStorage.getItem('fitTrackState');
+        if (savedState) {
+            try {
+                const loadedState = JSON.parse(savedState);
+                state = {
+                    ...state, ...loadedState,
+                    settings: { ...state.settings, ...(loadedState.settings || {}) },
+                    dailyLogs: loadedState.dailyLogs || {},
+                    progress: loadedState.progress || []
+                };
+            } catch (e) {
+                console.error("Error parsing state from storage:", e);
+            }
+        }
+        if (!state.dailyLogs[today]) {
+            state.dailyLogs[today] = { meals: [], exercise: 0, water: 0 };
+        }
+    }
 
-        <div class="flex justify-end space-x-3">
-            <button class="close-modal-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700">Cancel</button>
-            <button id="save-custom-recipe-btn" class="px-4 py-2 rounded-lg bg-blue-500 text-white">Save</button>
-        </div>
-    </div>
+    const toastContainer = document.getElementById('toast-container');
+    function showToast(message, type = 'info', duration = 3000) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const iconName = { info: 'info', success: 'check-circle', error: 'alert-circle' }[type];
+        toast.innerHTML = `<i data-feather="${iconName}"></i><p>${message}</p>`;
+        toastContainer.appendChild(toast);
+        feather.replace();
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, duration);
+    }
 
-    <!-- Message Box Modal -->
-    <div id="message-box-modal" class="modal-content hidden bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-sm z-50">
-        <h3 class="text-xl font-semibold mb-4" id="message-box-title"></h3>
-        <p id="message-box-text" class="mb-4"></p>
-        <div class="flex justify-end">
-            <button class="close-modal-btn px-4 py-2 rounded-lg bg-blue-500 text-white">OK</button>
-        </div>
-    </div>
+    const pages = document.querySelectorAll('.page');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    
+    let macroCharts = {};
+    let weightChart = null;
+    let autocompleteAbortController = null;
+    let chartResizeTimeout = null;
+    let generatedOtp;
 
+    function showPage(pageId) {
+        pages.forEach(page => page.classList.toggle('hidden', page.id !== `${pageId}-page`));
+        navLinks.forEach(link => {
+            const isActive = link.getAttribute('href') === `#${pageId}`;
+            link.classList.toggle('bg-primary-light', isActive);
+            link.classList.toggle('text-primary', isActive);
+            link.classList.toggle('text-muted', !isActive);
+            link.classList.toggle('hover:text-primary', !isActive);
+        });
+        if (pageId === 'progress' || pageId === 'calculators') {
+            feather.replace(); 
+        }
+    }
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <script type="module" src="./scripts/api.js"></script>
-    <script type="module" src="./scripts/chart.js"></script>
-    <script type="module" src="./scripts/nutrition.js"></script>
-    <script type="module" src="./scripts/app.js"></script>
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pageId = link.getAttribute('href').substring(1);
+            showPage(pageId);
+            // For mobile, close the menu after navigation
+            const sidebar = document.getElementById('sidebar');
+            const menuOverlay = document.getElementById('menu-overlay');
+            if (sidebar.classList.contains('translate-x-0')) {
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('-translate-x-full');
+                menuOverlay.classList.add('hidden');
+            }
+            window.scrollTo(0, 0);
+        });
+    });
+
+    function setupModal() {
+        const modal = document.getElementById('add-meal-modal');
+        const openBtn = document.getElementById('open-add-meal-modal');
+        const closeBtn = document.getElementById('close-add-meal-modal-btn');
+        if (!modal || !openBtn || !closeBtn) return;
+        const open = () => modal.classList.add('active');
+        const close = () => modal.classList.remove('active');
+        openBtn.addEventListener('click', open);
+        closeBtn.addEventListener('click', close);
+        modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) close(); });
+    }
+
+    darkModeToggle.addEventListener('change', () => {
+        state.settings.darkMode = darkModeToggle.checked;
+        saveState();
+        applyTheme();
+    });
+    
+    function applyTheme() {
+        document.documentElement.classList.toggle('dark', state.settings.darkMode);
+        darkModeToggle.checked = state.settings.darkMode;
+        destroyAllCharts();
+        initDashboardCharts();
+        initWeightChart();
+        updateDashboard();
+        updateWeightChart();
+    }
+    
+    function displayMotivationalQuote() {
+        const quoteContainer = document.getElementById('motivational-quote-container');
+        const quoteEl = document.getElementById('motivational-quote');
+        if (!quoteEl || !quoteContainer) return;
+
+        quoteContainer.classList.remove('hide');
+        const quoteIndex = new Date().getDate() % motivationalQuotes.length;
+        quoteEl.textContent = motivationalQuotes[quoteIndex];
+        
+        setTimeout(() => {
+            quoteContainer.classList.add('hide');
+        }, 7000);
+    }
+
+    function setupAutocomplete() {
+        const searchInput = document.getElementById('food-search-input');
+        const autocompleteList = document.getElementById('food-autocomplete-list');
+        if (!searchInput || !autocompleteList) return;
+        let debounceTimeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimeout);
+            const query = searchInput.value.trim();
+            if (query.length < 2) {
+                autocompleteList.classList.add('hidden');
+                return;
+            }
+            debounceTimeout = setTimeout(async () => {
+                if (autocompleteAbortController) autocompleteAbortController.abort();
+                autocompleteAbortController = new AbortController();
+                try {
+                    const response = await fetch(`https://trackapi.nutritionix.com/v2/search/instant?query=${query}`, {
+                        headers: { 'x-app-id': NUTRITIONIX_APP_ID, 'x-app-key': NUTRITIONIX_APP_KEY },
+                        signal: autocompleteAbortController.signal
+                    });
+                    const data = await response.json();
+                    autocompleteList.innerHTML = '';
+                    if (data.common && data.common.length > 0) {
+                        data.common.slice(0, 5).forEach(food => {
+                            const item = document.createElement('div');
+                            item.textContent = food.food_name;
+                            item.className = 'p-2 cursor-pointer hover:bg-primary-light';
+                            item.addEventListener('click', () => {
+                                searchInput.value = food.food_name;
+                                autocompleteList.classList.add('hidden');
+                            });
+                            autocompleteList.appendChild(item);
+                        });
+                        autocompleteList.classList.remove('hidden');
+                    } else {
+                       autocompleteList.classList.add('hidden');
+                    }
+                } catch (error) {
+                    if (error.name !== 'AbortError') console.error('Autocomplete Error:', error);
+                }
+            }, 300);
+        });
+        document.addEventListener('click', (e) => {
+            if (searchInput && !searchInput.contains(e.target) && !autocompleteList.contains(e.target)) {
+                autocompleteList.classList.add('hidden');
+            }
+        });
+    }
+    
+    function destroyAllCharts() {
+        Object.values(macroCharts).forEach(chart => { if (chart) chart.destroy(); });
+        macroCharts = {};
+        if(weightChart) { weightChart.destroy(); weightChart = null; }
+    }
+
+    function initDashboardCharts() {
+        const chartOptions = () => ({
+            cutout: '80%', responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } }
+        });
+        const themeColors = state.settings.darkMode ? { bg: 'rgba(74, 85, 104, 0.5)', primary: '#818cf8' } : { bg: 'rgba(224, 231, 255, 0.6)', primary: '#6366f1' };
+        const createChart = (id) => {
+            const canvas = document.getElementById(id);
+            if (!canvas) return null;
+            if (Chart.getChart(canvas)) Chart.getChart(canvas).destroy();
+            return new Chart(canvas.getContext('2d'), {
+                type: 'doughnut',
+                data: { datasets: [{ data: [0, 100], backgroundColor: [themeColors.primary, themeColors.bg], borderWidth: 0, borderRadius: 5 }] },
+                options: chartOptions()
+            });
+        };
+        macroCharts.protein = createChart('protein-chart');
+        macroCharts.carbs = createChart('carbs-chart');
+        macroCharts.fat = createChart('fat-chart');
+    }
+
+    function initWeightChart() {
+        const canvas = document.getElementById('weight-chart');
+        if (!canvas) return;
+        if (Chart.getChart(canvas)) Chart.getChart(canvas).destroy();
+        const themeColors = state.settings.darkMode 
+            ? { grid: 'rgba(255, 255, 255, 0.1)', ticks: '#a0aec0', line: '#818cf8', point: '#a5b4fc' } 
+            : { grid: 'rgba(0, 0, 0, 0.05)', ticks: '#718096', line: '#6366f1', point: '#818cf8' };
+        weightChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: { labels: [], datasets: [{ label: 'Weight (kg)', data: [], borderColor: themeColors.line, backgroundColor: themeColors.point, tension: 0.3, fill: false }] },
+            options: { responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: false, ticks: { color: themeColors.ticks }, grid: { color: themeColors.grid, drawBorder: false } },
+                          x: { ticks: { color: themeColors.ticks }, grid: { color: themeColors.grid, drawBorder: false } } },
+                plugins: { legend: { labels: { color: themeColors.ticks }} }
+            }
+        });
+    }
+    
+    function setupMealForm() {
+        const form = document.getElementById('add-meal-form');
+        if(!form) return;
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const foodName = form.querySelector('#food-search-input').value.trim();
+            const quantity = parseFloat(form.querySelector('#food-quantity').value);
+            if (!foodName || !quantity || quantity <= 0) return showToast('Please enter a valid food and quantity.', 'error');
+            
+            const addBtnText = form.querySelector('#add-log-btn-text');
+            const addBtnLoader = form.querySelector('#add-log-loader');
+            addBtnText.classList.add('hidden'); addBtnLoader.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`https://trackapi.nutritionix.com/v2/natural/nutrients`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-app-id': NUTRITIONIX_APP_ID, 'x-app-key': NUTRITIONIX_APP_KEY },
+                    body: JSON.stringify({ query: `${quantity}g ${foodName}` })
+                });
+                if (!response.ok) throw new Error((await response.json()).message || 'Failed to fetch data');
+                const data = await response.json();
+                if (!data.foods || data.foods.length === 0) return showToast('Could not find nutrition data.', 'error');
+                
+                const time = form.querySelector('#meal-time').value || new Date().toTimeString().substring(0,5);
+                data.foods.forEach(foodItem => {
+                    state.dailyLogs[today].meals.push({
+                        id: Date.now() + Math.random(), name: foodItem.food_name, time: time,
+                        quantity: foodItem.serving_qty, unit: foodItem.serving_unit,
+                        calories: Math.round(foodItem.nf_calories || 0),
+                        protein: parseFloat((foodItem.nf_protein || 0).toFixed(1)),
+                        carbs: parseFloat((foodItem.nf_total_carbohydrate || 0).toFixed(1)),
+                        fat: parseFloat((foodItem.nf_total_fat || 0).toFixed(1)),
+                    });
+                });
+                saveState();
+                updateDashboard();
+                showToast(`Logged ${data.foods.length} item(s).`, 'success');
+                document.getElementById('add-meal-modal').classList.remove('active');
+                form.reset();
+            } catch (error) {
+                console.error('Nutrition Fetch Error:', error);
+                showToast(error.message, 'error');
+            } finally {
+                addBtnText.classList.remove('hidden'); addBtnLoader.classList.add('hidden');
+            }
+        });
+    }
+    
+    function updateDashboard() {
+        const todaysLog = state.dailyLogs[today] || { meals: [], exercise: 0, water: 0 };
+        const { calorieGoal } = state.settings;
+        const totals = todaysLog.meals.reduce((acc, meal) => {
+            acc.calories += meal.calories; acc.protein += meal.protein;
+            acc.carbs += meal.carbs; acc.fat += meal.fat;
+            return acc;
+        }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+        
+        document.getElementById('total-calories-consumed').textContent = totals.calories.toFixed(0);
+        document.getElementById('calorie-goal-display').textContent = calorieGoal;
+        document.getElementById('total-calories-burned').textContent = todaysLog.exercise;
+        document.getElementById('net-calories').textContent = (totals.calories - todaysLog.exercise).toFixed(0);
+        document.getElementById('water-intake-text').textContent = todaysLog.water;
+
+        const progressPercent = calorieGoal > 0 ? Math.min(100, (totals.calories / calorieGoal) * 100) : 0;
+        document.getElementById('calorie-progress-bar').style.width = `${progressPercent}%`;
+        document.getElementById('calorie-progress-text').textContent = `${totals.calories.toFixed(0)} / ${calorieGoal} kcal`;
+        updateMacroCharts(totals);
+    }
+    
+    function updateMacroCharts(totals = { protein: 0, carbs: 0, fat: 0 }) {
+        const { calorieGoal, proteinRatio, carbsRatio, fatRatio } = state.settings;
+        const proteinGoal = (calorieGoal * (proteinRatio / 100)) / 4;
+        const carbsGoal = (calorieGoal * (carbsRatio / 100)) / 4;
+        const fatGoal = (calorieGoal * (fatRatio / 100)) / 9;
+        
+        document.getElementById('protein-goal-text').textContent = `${proteinGoal.toFixed(0)}g`;
+        document.getElementById('carbs-goal-text').textContent = `${carbsGoal.toFixed(0)}g`;
+        document.getElementById('fat-goal-text').textContent = `${fatGoal.toFixed(0)}g`;
+        document.getElementById('protein-consumed-text').textContent = `${totals.protein.toFixed(1)}g`;
+        document.getElementById('carbs-consumed-text').textContent = `${totals.carbs.toFixed(1)}g`;
+        document.getElementById('fat-consumed-text').textContent = `${totals.fat.toFixed(1)}g`;
+        
+        const updateChart = (chart, consumed, goal) => {
+            if (!chart) return;
+            const percentage = goal > 0 ? Math.min(100, (consumed / goal) * 100) : 0;
+            chart.data.datasets[0].data = [percentage, 100 - percentage];
+            chart.update('none');
+        };
+        updateChart(macroCharts.protein, totals.protein, proteinGoal);
+        updateChart(macroCharts.carbs, totals.carbs, carbsGoal);
+        updateChart(macroCharts.fat, totals.fat, fatGoal);
+    }
+    
+    document.getElementById('increase-water')?.addEventListener('click', () => { state.dailyLogs[today].water++; saveState(); updateDashboard(); });
+    document.getElementById('decrease-water')?.addEventListener('click', () => { if(state.dailyLogs[today].water > 0) { state.dailyLogs[today].water--; saveState(); updateDashboard(); }});
+    
+    function updateWeightChart() {
+        if(!weightChart) return;
+        const sortedProgress = [...state.progress].sort((a,b) => new Date(a.date) - new Date(b.date));
+        weightChart.data.labels = sortedProgress.map(p => p.date);
+        weightChart.data.datasets[0].data = sortedProgress.map(p => p.weight);
+        weightChart.update();
+    }
+
+    document.getElementById('log-progress-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const weight = parseFloat(form.querySelector('#weight-input').value);
+        const exercise = parseInt(form.querySelector('#exercise-input').value) || 0;
+        
+        const btn = form.querySelector('button[type="submit"]');
+        const btnText = btn.querySelector('.btn-text');
+        const btnLoader = btn.querySelector('.btn-loader');
+        btnText.classList.add('hidden'); btnLoader.classList.remove('hidden'); btn.disabled = true;
+
+        setTimeout(() => { // Simulate loading
+            if (!isNaN(weight)) {
+                const existingLogIndex = state.progress.findIndex(p => p.date === today);
+                if(existingLogIndex > -1) { state.progress[existingLogIndex].weight = weight; } 
+                else { state.progress.push({ date: today, weight: weight }); }
+            }
+            if(exercise > 0) { state.dailyLogs[today].exercise = (state.dailyLogs[today].exercise || 0) + exercise; }
+            
+            saveState();
+            updateProgressPage();
+            updateDashboard();
+            form.reset();
+            showToast('Progress logged!', 'success');
+            btnText.classList.remove('hidden'); btnLoader.classList.add('hidden'); btn.disabled = false;
+        }, 500);
+    });
+
+    function updateProgressPage() {
+        const lastWeight = state.progress.length > 0 ? state.progress[state.progress.length - 1].weight : '';
+        const weightInput = document.getElementById('weight-input');
+        if(weightInput) weightInput.value = lastWeight;
+        updateWeightChart();
+    }
+    
+    function setupCalculators() {
+        // BMI Calculator
+        document.getElementById('bmi-form')?.addEventListener('submit', e => {
+            e.preventDefault();
+            const h = parseFloat(document.getElementById('bmi-height').value) / 100;
+            const w = parseFloat(document.getElementById('bmi-weight').value);
+            if (h > 0 && w > 0) {
+                const bmi = (w / (h*h)).toFixed(1);
+                let category = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obesity';
+                document.getElementById('bmi-result').textContent = `Your BMI is ${bmi} (${category})`;
+            }
+        });
+
+        // BMR Calculator
+        document.getElementById('bmr-form')?.addEventListener('submit', e => {
+            e.preventDefault();
+            const age = parseInt(document.getElementById('bmr-age').value);
+            const h = parseFloat(document.getElementById('bmr-height').value);
+            const w = parseFloat(document.getElementById('bmr-weight').value);
+            if (age > 0 && h > 0 && w > 0) {
+                const gender = document.getElementById('bmr-gender').value;
+                let bmr = gender === 'male' ? (88.362 + (13.397 * w) + (4.799 * h) - (5.677 * age)) : (447.593 + (9.247 * w) + (3.098 * h) - (4.330 * age));
+                document.getElementById('bmr-result').textContent = `Your BMR is ${bmr.toFixed(0)} kcal/day`;
+            }
+        });
+
+        // Maintenance Calorie Calculator
+        const mcForm = document.getElementById('maintenance-calorie-form');
+        mcForm?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const resultDiv = document.getElementById('mc-result');
+            const resultValue = document.getElementById('mc-result-value');
+            const errorDiv = document.getElementById('mc-error-message');
+            
+            resultDiv.classList.add('hidden');
+            errorDiv.classList.add('hidden');
+
+            const gender = mcForm.querySelector('input[name="mc-gender"]:checked').value;
+            const age = parseFloat(document.getElementById('mc-age').value);
+            const weight = parseFloat(document.getElementById('mc-weight').value);
+            const height = parseFloat(document.getElementById('mc-height').value);
+            const activity = parseFloat(document.getElementById('mc-activity').value);
+
+            if (isNaN(age) || isNaN(weight) || isNaN(height) || age <= 0 || weight <= 0 || height <= 0) {
+                errorDiv.textContent = 'Please enter valid, positive numbers for all fields.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            let bmr = (gender === 'male') 
+                ? (10 * weight + 6.25 * height - 5 * age + 5)
+                : (10 * weight + 6.25 * height - 5 * age - 161);
+            
+            const maintenanceCalories = bmr * activity;
+            resultValue.textContent = Math.round(maintenanceCalories).toLocaleString('en-US');
+            resultDiv.classList.remove('hidden');
+        });
+    }
+
+    function loadSettings() {
+        const { calorieGoal, proteinRatio, carbsRatio, fatRatio } = state.settings;
+        document.getElementById('calorie-goal-input').value = calorieGoal;
+        document.getElementById('protein-ratio').value = proteinRatio;
+        document.getElementById('carbs-ratio').value = carbsRatio;
+        document.getElementById('fat-ratio').value = fatRatio;
+    }
+
+    document.getElementById('settings-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const protein = parseInt(document.getElementById('protein-ratio').value);
+        const carbs = parseInt(document.getElementById('carbs-ratio').value);
+        const fat = parseInt(document.getElementById('fat-ratio').value);
+        const ratioError = document.getElementById('ratio-error');
+        if(protein + carbs + fat !== 100) {
+            ratioError.classList.remove('hidden');
+            return;
+        }
+        ratioError.classList.add('hidden');
+        
+        state.settings.calorieGoal = parseInt(document.getElementById('calorie-goal-input').value);
+        state.settings.proteinRatio = protein;
+        state.settings.carbsRatio = carbs;
+        state.settings.fatRatio = fat;
+        
+        saveState();
+        showToast('Settings saved!', 'success');
+        updateDashboard();
+    });
+    
+    document.getElementById('reset-data-button')?.addEventListener('click', (e) => {
+        const resetBtn = e.target;
+        if (resetBtn.dataset.confirmed) {
+            clearUserState(); // Clear user and app state
+            location.reload();
+        } else {
+            resetBtn.dataset.confirmed = "true";
+            resetBtn.textContent = "Confirm Reset?";
+            resetBtn.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+            resetBtn.classList.remove('bg-danger');
+            setTimeout(() => {
+                resetBtn.dataset.confirmed = "";
+                resetBtn.textContent = "Reset All Data";
+                resetBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                resetBtn.classList.add('bg-danger');
+            }, 3000);
+        }
+    });
+    
+    window.addEventListener('resize', () => {
+        clearTimeout(chartResizeTimeout);
+        chartResizeTimeout = setTimeout(() => {
+            if(weightChart) weightChart.resize();
+            Object.values(macroCharts).forEach(chart => { if (chart) chart.resize(); });
+        }, 250);
+    });
+
+    // --- App Initialization & Auth Logic ---
+    function handleAuth() {
+        const user = loadUserState();
+        if (user && user.username) {
+            showApp(user);
+        } else {
+            showLogin();
+        }
+    }
+
+    function showLogin() {
+        document.getElementById('auth-container').style.display = 'flex';
+        document.getElementById('app-container').style.display = 'none';
+        document.getElementById('motivational-quote-container').style.display = 'none';
+        
+        const registrationPage = document.getElementById('registration-page');
+        const otpPage = document.getElementById('otp-page');
+        const successPage = document.getElementById('success-page');
+        const registrationForm = document.getElementById('registration-form');
+        const otpContainer = document.getElementById('otp-container');
+        const otpInputs = [...otpContainer.querySelectorAll('.otp-input')];
+
+        registrationForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = registrationForm.querySelector('#username').value.trim();
+            const mobile = registrationForm.querySelector('#mobile').value.trim();
+
+            if (!username || !/^[0-9]{10}$/.test(mobile)) {
+                showToast('Please enter a valid name and 10-digit mobile number.', 'error');
+                return;
+            }
+
+            generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('generated-otp-display').textContent = `${generatedOtp}`;
+            document.getElementById('mobile-number-display').textContent = `+XX-XXXXXX-${mobile.slice(-4)}`;
+            
+            registrationPage.classList.add('hidden');
+            otpPage.classList.remove('hidden');
+            otpInputs[0].focus();
+        });
+
+        document.getElementById('back-to-reg-btn').addEventListener('click', () => {
+            otpPage.classList.add('hidden');
+            registrationPage.classList.remove('hidden');
+        });
+
+        document.getElementById('verify-btn').addEventListener('click', () => {
+            const enteredOtp = otpInputs.map(input => input.value).join('');
+            const otpMessageBox = document.getElementById('otp-message-box');
+
+            if (enteredOtp !== generatedOtp) {
+                otpMessageBox.textContent = 'Incorrect code. Please try again.';
+                otpMessageBox.classList.remove('hidden');
+                otpContainer.classList.add('animate-shake');
+                setTimeout(() => otpContainer.classList.remove('animate-shake'), 500);
+                return;
+            }
+
+            const username = registrationForm.querySelector('#username').value.trim();
+            const mobile = registrationForm.querySelector('#mobile').value.trim();
+            saveUserState(username, mobile);
+
+            otpPage.classList.add('hidden');
+            successPage.classList.remove('hidden');
+
+            setTimeout(() => {
+                showApp({ username, mobile });
+            }, 1500);
+        });
+
+        otpContainer.addEventListener('input', (e) => {
+            const target = e.target;
+            if(target.value.length > 1) target.value = target.value[0];
+            if (target.value && target.dataset.index < otpInputs.length - 1) {
+                otpInputs[parseInt(target.dataset.index) + 1].focus();
+            }
+        });
+
+        otpContainer.addEventListener('keydown', (e) => {
+            const index = parseInt(e.target.dataset.index);
+            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                otpInputs[index - 1].focus();
+            }
+        });
+    }
+
+    function showApp(user) {
+        document.getElementById('auth-container').style.display = 'none';
+        document.getElementById('app-container').style.display = 'flex';
+        document.getElementById('motivational-quote-container').style.display = 'block';
+
+        // Show dev popup only once per session
+        if (!sessionStorage.getItem('devPopupShown')) {
+            const devPopup = document.getElementById('dev-popup');
+            devPopup.classList.add('active');
+            document.getElementById('close-dev-popup').addEventListener('click', () => {
+                devPopup.classList.remove('active');
+                sessionStorage.setItem('devPopupShown', 'true');
+            });
+        }
+
+        const profileSection = document.getElementById('profile-section');
+        const profileAvatar = document.getElementById('profile-avatar');
+        const profileName = document.getElementById('profile-name');
+        const mobileProfileAvatar = document.getElementById('mobile-profile-avatar');
+        
+        const initial = user.username.charAt(0).toUpperCase();
+        profileAvatar.textContent = initial;
+        mobileProfileAvatar.textContent = initial;
+        profileName.textContent = user.username;
+        profileSection.classList.remove('hidden');
+
+        document.getElementById('logout-button').addEventListener('click', () => {
+            clearUserState();
+            location.reload();
+        });
+
+        // Mobile Menu Logic
+        const menuToggle = document.getElementById('menu-toggle');
+        const menuClose = document.getElementById('menu-close');
+        const menuOverlay = document.getElementById('menu-overlay');
+        const sidebar = document.getElementById('sidebar');
+
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            menuOverlay.classList.remove('hidden');
+        });
+
+        const closeMenu = () => {
+            sidebar.classList.add('-translate-x-full');
+            sidebar.classList.remove('translate-x-0');
+            menuOverlay.classList.add('hidden');
+        };
+
+        menuClose.addEventListener('click', closeMenu);
+        menuOverlay.addEventListener('click', closeMenu);
+
+        initializeApp(user);
+    }
+
+    function getGreeting() {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 12) return "🌞 Good Morning";
+        if (hour >= 12 && hour < 17) return "🌤️ Good Afternoon";
+        if (hour >= 17 && hour < 21) return "🌇 Good Evening";
+        return "🌙 Good Night";
+    }
+
+    function initializeApp(user) {
+        loadState();
+        applyTheme();
+        showPage('dashboard');
+        feather.replace();
+        loadSettings();
+        updateProgressPage();
+        if(user) { // Only show quote if user is logged in
+            displayMotivationalQuote();
+            document.getElementById('greeting').textContent = getGreeting();
+        }
+        setupModal();
+        setupAutocomplete();
+        setupMealForm();
+        setupCalculators();
+        updateDashboard();
+    }
+
+    handleAuth();
+
+});
+
+    </script>
 </body>
 </html>
